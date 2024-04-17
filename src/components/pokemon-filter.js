@@ -35,13 +35,24 @@ class PokemonFilter extends LitElement {
 
     static properties = {
         pokemonArray: [],
-        types: []
+        types: [],
+        loading: true
     };
 
+    constructor() {
+        super();
+        this.loading = true;
+    }
 
-    async firstUpdated() {
-        this.types = await this.getAllPokemonTypes();
-        this.pokemonArray = await this.getAllPokemon('https://pokeapi.co/api/v2/pokemon', false);
+
+    firstUpdated() {
+        this.getAllPokemonTypes().then((types) => {
+            this.types = types;
+        });
+        this.getAllPokemon('https://pokeapi.co/api/v2/pokemon', false).then((pokemonArray) => {
+            this.pokemonArray = pokemonArray;
+            this.loading = false;
+        });
     }
 
     render() {
@@ -57,16 +68,21 @@ class PokemonFilter extends LitElement {
             return;
         }
 
+        this.loading = true;
         this.getPokemonByName(searchText).then((pokemon) => {
             this.pokemonArray = [pokemon];
-        }).catch(() => this.pokemonArray = []);
+            this.loading = false;
+        }).catch(() => {
+            this.loading = false;
+            this.pokemonArray = [];
+        });
     }
 
     template() {
         return html`
         <div class="container">
             ${this.templateInputSearch()}
-            ${this.pokemonArray?.length ? this.showPokemonCards() : this.showPokemonNotFound()}
+            ${this.loading ? html`<loading-component></loading-component>` : this.pokemonArray?.length ? this.showPokemonCards() : this.showPokemonNotFound()}
         </div>
         `;
     }
@@ -202,12 +218,19 @@ class PokemonFilter extends LitElement {
         return '0'.repeat(5 - id.toString().length) + id;
     }
 
-    async pokemonByType(url) {
+    pokemonByType(url) {
+        this.loading = true;
         if (url === 'TODOS') {
-            this.pokemonArray = await this.getAllPokemon('https://pokeapi.co/api/v2/pokemon', false)
+            this.getAllPokemon('https://pokeapi.co/api/v2/pokemon', false).then((allPokemon) => {
+                this.pokemonArray = allPokemon;
+                this.loading = false;
+            });
             return;
         }
-        this.pokemonArray = await this.getAllPokemon(url, true);
+        this.getAllPokemon(url, true).then((allPokemon) => {
+            this.pokemonArray = allPokemon;
+            this.loading = false;
+        });
     }
 
     goToPokemon(pokemon) {

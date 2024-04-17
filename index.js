@@ -1,5 +1,6 @@
 import { Router } from '@vaadin/router';
 
+import './src/components/loading.js';
 import './src/components/pokemon-detail.js';
 import './src/components/pokemon-filter.js';
 import './src/components/pokemon-navbar.js';
